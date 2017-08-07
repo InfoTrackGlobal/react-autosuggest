@@ -1,13 +1,16 @@
 import React, { Component } from 'react';
+import { defaultTheme, mapToAutowhateverTheme } from './theme';
+
+import Autowhatever from 'react-autowhatever';
 import PropTypes from 'prop-types';
 import shallowEqualArrays from 'shallow-equal/arrays';
-import Autowhatever from 'react-autowhatever';
-import { defaultTheme, mapToAutowhateverTheme } from './theme';
 
 const alwaysTrue = () => true;
 const defaultShouldRenderSuggestions = value => value.trim().length > 0;
 const defaultRenderSuggestionsContainer = ({ containerProps, children }) =>
-  <div {...containerProps}>{children}</div>;
+  <div {...containerProps}>
+    {children}
+  </div>;
 
 export default class Autosuggest extends Component {
   static propTypes = {
@@ -201,6 +204,9 @@ export default class Autosuggest extends Component {
     this.setState({
       isCollapsed: false
     });
+    if (this.props.onCollapsedChange) {
+      this.props.onCollapsedChange(false);
+    }
   }
 
   closeSuggestions() {
@@ -210,6 +216,9 @@ export default class Autosuggest extends Component {
       valueBeforeUpDown: null,
       isCollapsed: true
     });
+    if (this.props.onCollapsedChange) {
+      this.props.onCollapsedChange(true);
+    }
   }
 
   getSuggestion(sectionIndex, suggestionIndex) {
@@ -250,9 +259,8 @@ export default class Autosuggest extends Component {
     );
 
     return {
-      sectionIndex: typeof sectionIndex === 'string'
-        ? parseInt(sectionIndex, 10)
-        : null,
+      sectionIndex:
+        typeof sectionIndex === 'string' ? parseInt(sectionIndex, 10) : null,
       suggestionIndex: parseInt(suggestionIndex, 10)
     };
   }
@@ -403,6 +411,10 @@ export default class Autosuggest extends Component {
       isCollapsed: !shouldRender
     });
 
+    if (this.props.onCollapsedChange) {
+      this.props.onCollapsedChange(!shouldRender);
+    }
+
     onBlur && onBlur(this.blurEvent, { highlightedSuggestion });
   };
 
@@ -485,6 +497,10 @@ export default class Autosuggest extends Component {
             isCollapsed: !shouldRender
           });
 
+          if (this.props.onCollapsedChange) {
+            this.props.onCollapsedChange(!shouldRender);
+          }
+
           onFocus && onFocus(event);
 
           if (shouldRender) {
@@ -500,10 +516,10 @@ export default class Autosuggest extends Component {
 
         this.blurEvent = event;
 
-        if (!this.justSelectedSuggestion) {
-          this.onBlur();
-          this.onSuggestionsClearRequested();
-        }
+        // if (!this.justSelectedSuggestion) {
+        //   this.onBlur();
+        //   this.onSuggestionsClearRequested();
+        // }
       },
       onChange: event => {
         const { value } = event.target;
@@ -517,6 +533,10 @@ export default class Autosuggest extends Component {
           valueBeforeUpDown: null,
           isCollapsed: !shouldRender
         });
+
+        if (this.props.onCollapsedChange) {
+          this.props.onCollapsedChange(!shouldRender);
+        }
 
         if (shouldRender) {
           onSuggestionsFetchRequested({ value, reason: 'input-changed' });
@@ -548,9 +568,8 @@ export default class Autosuggest extends Component {
                 // valueBeforeUpDown can be null if, for example, user
                 // hovers on the first suggestion and then pressed Up.
                 // If that happens, use the original input value.
-                newValue = valueBeforeUpDown === null
-                  ? value
-                  : valueBeforeUpDown;
+                newValue =
+                  valueBeforeUpDown === null ? value : valueBeforeUpDown;
               } else {
                 newValue = this.getSuggestionValueByIndex(
                   newHighlightedSectionIndex,
